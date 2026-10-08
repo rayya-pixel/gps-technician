@@ -1,115 +1,119 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GPS Tracker</title>
-
-  <!-- Leaflet CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPS Tracker Mobil</title>
+  
+  <!-- CSS Leaflet untuk Peta -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-    body, html { height: 100%; width: 100%; }
-
-    #map { height: 100vh; width: 100vw; }
-
-    /* Card Info Melayang */
-    .card {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      z-index: 1000;
-      background: white;
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-      min-width: 240px;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    .card h3 {
-      font-size: 16px;
-      margin-bottom: 10px;
-      color: #333;
+    body {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      height: 100vh;
+      background-color: #f4f6f9;
     }
-
-    .status {
+    .sidebar {
+      width: 320px;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    .card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
       font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 12px;
-      background: #dc3545;
+      font-weight: bold;
       color: white;
+      background-color: #28a745;
+      text-transform: uppercase;
     }
-    .status.online { background: #28a745; }
-
-    .info { font-size: 13px; color: #555; margin-bottom: 5px; }
-    .info strong { color: #111; }
+    .info-item {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #495057;
+    }
+    .btn-track {
+      padding: 12px;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-track:hover {
+      background-color: #4338ca;
+    }
+    #map {
+      flex: 1;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Card Informasi -->
-  <div class="card">
-    <h3>🚗 GPS Mobil <span id="status" class="status">Offline</span></h3>
-    <div class="info">IMEI: <strong id="imei">-</strong></div>
-    <div class="info">Kecepatan: <strong id="speed">-</strong></div>
-    <div class="info">Update: <strong id="time">-</strong></div>
+  <div class="sidebar">
+    <h2>GPS Tracker Mobil</h2>
+    
+    <div class="card">
+      <span class="status-badge">MEMANTAU</span>
+      <div class="info-item"><strong>Plat Nomor:</strong> B 1234 RYA</div>
+      <div class="info-item"><strong>Pengemudi:</strong> Rayya</div>
+      <div class="info-item"><strong>Kecepatan:</strong> 45 km/jam</div>
+      <div class="info-item"><strong>Lokasi:</strong> Jakarta Pusat</div>
+    </div>
+
+    <button class="btn-track" onclick="focusCar()">Fokus ke Mobil</button>
   </div>
 
-  <!-- Peta -->
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
+  <!-- JavaScript Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
-    // Inisialisasi Peta
-    const map = L.map('map').setView([-6.200000, 106.816666], 12);
+    const carLat = -6.2088;
+    const carLng = 106.8456;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
+    const map = L.map('map').setView([carLat, carLng], 14);
+
+    // Peta Gratis Esri World Street Map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Tiles &copy; Esri'
     }).addTo(map);
 
-    let marker;
+    const carMarker = L.marker([carLat, carLng]).addTo(map)
+      .bindPopup('<b>Mobil Rayya</b><br>Kecepatan: 45 km/jam')
+      .openPopup();
 
-    // Ambil Data GPS dari Server Backend
-    async function getGPS() {
-      try {
-        const res = await fetch('/api/gps');
-        const data = await res.json();
-
-        if (data && data.lat !== null && data.lng !== null) {
-          const lat = parseFloat(data.lat);
-          const lng = parseFloat(data.lng);
-
-          // Update Teks Card
-          document.getElementById('imei').innerText = data.imei || '-';
-          document.getElementById('speed').innerText = (data.speed || 0) + ' km/h';
-          document.getElementById('time').innerText = new Date(data.timestamp).toLocaleTimeString();
-          
-          const status = document.getElementById('status');
-          status.innerText = 'Online';
-          status.classList.add('online');
-
-          // Buat / Pindahkan Marker di Peta
-          if (!marker) {
-            marker = L.marker([lat, lng]).addTo(map);
-            map.setView([lat, lng], 15);
-          } else {
-            marker.setLatLng([lat, lng]);
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    function focusCar() {
+      map.setView([carLat, carLng], 16);
+      carMarker.openPopup();
     }
-
-    // Auto Refresh 3 Detik
-    setInterval(getGPS, 3000);
-    getGPS();
   </script>
+
 </body>
 </html>
