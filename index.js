@@ -1,6 +1,6 @@
 const net = require('net');
 const express = require('express');
-const TeltonikaParser = require('teltonika-parser');
+const TeltonikaParser = require('teltonika-parser-ex');
 
 const app = express();
 const HTTP_PORT = process.env.PORT || 3000;
