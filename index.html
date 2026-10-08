@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPS Tracker Mobil</title>
+  
+  <!-- CSS Leaflet untuk Peta -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: #f4f6f9;
+    }
+    .sidebar {
+      width: 320px;
+      padding: 20px;
+      background: #ffffff;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      color: #2c3e50;
+    }
+    .card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      background-color: #28a745;
+      text-transform: uppercase;
+    }
+    .info-item {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #495057;
+    }
+    .btn-track {
+      padding: 12px;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-track:hover {
+      background-color: #4338ca;
+    }
+    #map {
+      flex: 1;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>GPS Tracker Mobil</h2>
+    
+    <div class="card">
+      <span class="status-badge">MEMANTAU</span>
+      <div class="info-item"><strong>Plat Nomor:</strong> B 1234 RYA</div>
+      <div class="info-item"><strong>Pengemudi:</strong> Rayya</div>
+      <div class="info-item"><strong>Kecepatan:</strong> 45 km/jam</div>
+      <div class="info-item"><strong>Lokasi:</strong> Jakarta Pusat</div>
+    </div>
+
+    <button class="btn-track" onclick="focusCar()">Fokus ke Mobil</button>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- JavaScript Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const carLat = -6.2088;
+    const carLng = 106.8456;
+
+    const map = L.map('map').setView([carLat, carLng], 14);
+
+    // Peta Gratis Esri World Street Map
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Tiles &copy; Esri'
+    }).addTo(map);
+
+    const carMarker = L.marker([carLat, carLng]).addTo(map)
+      .bindPopup('<b>Mobil Rayya</b><br>Kecepatan: 45 km/jam')
+      .openPopup();
+
+    function focusCar() {
+      map.setView([carLat, carLng], 16);
+      carMarker.openPopup();
+    }
+  </script>
+
+</body>
+</html>
