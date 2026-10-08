@@ -1,0 +1,13 @@
+{
+  "name": "gps-teltonika",
+  "version": "1.0.0",
+  "description": "Server GPS Teltonika FMB130",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "teltonika-parser": "^1.0.0"
+  }
+}
