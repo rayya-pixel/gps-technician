@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "teltonika-parser": "^1.0.0"
+    "teltonika-parser-ex": "^1.0.1"
   }
 }
