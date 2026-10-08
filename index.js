@@ -1,28 +1,25 @@
-const net = require('net');
 const express = require('express');
 
 const app = express();
 const HTTP_PORT = process.env.PORT || 3000;
-const TCP_PORT = process.env.TCP_PORT || 5207;
 
-// Menyimpan data GPS terakhir
+// Data GPS Terakhir (Dummy / Menunggu koneksi)
 let lastGpsData = {
   imei: null,
   lat: null,
   lng: null,
-  altitude: null,
   speed: null,
   timestamp: null
 };
 
 app.use(express.static(__dirname));
 
-// Endpoint API data GPS untuk Peta
+// API untuk membaca data GPS
 app.get('/api/gps', (req, res) => {
   res.json(lastGpsData);
 });
 
-// Tampilan Dashboard Peta UI Langsung
+// Tampilan Dashboard Peta UI
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -91,53 +88,6 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Listener HTTP untuk Browser Web
 app.listen(HTTP_PORT, () => {
   console.log(`[HTTP] Server running on port ${HTTP_PORT}`);
-});
-
-// Listener TCP untuk Alat Teltonika FMB130
-const tcpServer = net.createServer((socket) => {
-  let imei = null;
-
-  socket.on('data', (data) => {
-    // Handshake IMEI Teltonika
-    if (!imei && data.length >= 2) {
-      const imeiLength = data.readUInt16BE(0);
-      if (data.length >= 2 + imeiLength) {
-        imei = data.toString('ascii', 2, 2 + imeiLength);
-        console.log(`[TCP] Connected IMEI: ${imei}`);
-        socket.write(Buffer.from([0x01])); // Respon handshake OK
-        return;
-      }
-    }
-
-    // Parsing sederhana lokasi Teltonika
-    try {
-      if (data.length > 10) {
-        const numberOfData = data.readUInt8(9);
-        lastGpsData = {
-          imei: imei,
-          lat: (data.readInt32BE(19) / 10000000),
-          lng: (data.readInt32BE(15) / 10000000),
-          altitude: data.readInt16BE(23),
-          speed: data.readUInt16BE(27),
-          timestamp: new Date().toISOString()
-        };
-
-        const ack = Buffer.alloc(4);
-        ack.writeUInt32BE(numberOfData, 0);
-        socket.write(ack);
-      }
-    } catch (err) {
-      console.error('[TCP PARSE ERROR]', err.message);
-    }
-  });
-
-  socket.on('error', (err) => console.error('[TCP SOCKET ERROR]', err.message));
-  socket.on('close', () => console.log('[TCP] Client disconnected'));
-});
-
-tcpServer.listen(TCP_PORT, () => {
-  console.log(`[TCP] Server listening on port ${TCP_PORT}`);
 });
